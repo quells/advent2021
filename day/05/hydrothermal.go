@@ -32,46 +32,11 @@ func (l line) points() (ps [][2]int) {
 	dx := sign(l[1][0] - l[0][0])
 	dy := sign(l[1][1] - l[0][1])
 
-	if dx == 0 {
-		// vertical
-		var m, M int
-		if l[0][1] < l[1][1] {
-			m = l[0][1]
-			M = l[1][1]
-		} else {
-			m = l[1][1]
-			M = l[0][1]
-		}
-		x := l[0][0]
-		for y := m; y <= M; y++ {
-			ps = append(ps, [2]int{x, y})
-		}
-		return
-	}
-
-	if dy == 0 {
-		// horizontal
-		var m, M int
-		if l[0][0] < l[1][0] {
-			m = l[0][0]
-			M = l[1][0]
-		} else {
-			m = l[1][0]
-			M = l[0][0]
-		}
-		y := l[0][1]
-		for x := m; x <= M; x++ {
-			ps = append(ps, [2]int{x, y})
-		}
-		return
-	}
-
-	// diagonal
 	x := l[0][0]
 	y := l[0][1]
 	for {
 		ps = append(ps, [2]int{x, y})
-		if x == l[1][0] || y == l[1][1] {
+		if x == l[1][0] && y == l[1][1] {
 			return
 		}
 		x += dx
