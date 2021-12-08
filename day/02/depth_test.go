@@ -63,7 +63,7 @@ func TestFollowAimCmds(t *testing.T) {
 		require.Equal(t, 60, p.depth)
 	})
 
-	t.Run("puzzle A", func(t *testing.T) {
+	t.Run("puzzle B", func(t *testing.T) {
 		var p pos
 		p.followAimCmds(strings.Split(puzzleInput, "\n"))
 		require.Equal(t, 1962, p.x)
