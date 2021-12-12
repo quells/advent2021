@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            background-color: #124;
+        }
+        #canvas {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+    <title>Advent of Code 2021 | Fireflies</title>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    <script>
+
+let colorMap = [
+    [0x11, 0x22, 0x44],
+    [0x44, 0x11, 0x11],
+    [0x55, 0x11, 0x11],
+    [0x77, 0x22, 0x11],
+    [0x88, 0x22, 0x11],
+    [0x99, 0x33, 0x11],
+    [0xaa, 0x44, 0x11],
+    [0xbb, 0x55, 0x11],
+    [0xcc, 0x77, 0x11],
+    [0xdd, 0x99, 0x11],
+    [0xee, 0xdd, 0x11],
+];
+
+class Grid {
+    constructor(w, h) {
+        this.w = w;
+        this.h = h;
+        this.points = new Array(w*h);
+        this.blinked = new Array(w*h);
+        for (let i = 0; i < w*h; i++) {
+            this.points[i] = parseInt(Math.random() * 10);
+            this.blinked[i] = false;
+        }
+    }
+
+    ripple(x, y, idx) {
+        if (x > 0) {
+            let wIdx = idx - 1;
+            let w = this.points[wIdx] + 1;
+            this.points[wIdx] = w
+            if (w > 9 && !this.blinked[wIdx]) {
+                this.blinked[wIdx] = true;
+                this.ripple(x-1, y, wIdx)
+            }
+            if (y > 0) {
+                let nwIdx = idx - this.w - 1;
+                let nw = this.points[nwIdx] + 1;
+                this.points[nwIdx] = nw
+                if (nw > 9 && !this.blinked[nwIdx]) {
+                    this.blinked[nwIdx] = true;
+                    this.ripple(x-1, y-1, nwIdx)
+                }
+            }
+            if (y < this.h-1) {
+                let swIdx = idx + this.w - 1;
+                let sw = this.points[swIdx] + 1;
+                this.points[swIdx] = sw
+                if (sw > 9 && !this.blinked[swIdx]) {
+                    this.blinked[swIdx] = true;
+                    this.ripple(x-1, y+1, swIdx)
+                }
+            }
+        }
+        if (x < this.w-1) {
+            let eIdx = idx + 1;
+            let e = this.points[eIdx] + 1;
+            this.points[eIdx] = e
+            if (e > 9 && !this.blinked[eIdx]) {
+                this.blinked[eIdx] = true;
+                this.ripple(x+1, y, eIdx)
+            }
+            if (y > 0) {
+                let neIdx = idx - this.w + 1;
+                let ne = this.points[neIdx] + 1;
+                this.points[neIdx] = ne
+                if (ne > 9 && !this.blinked[neIdx]) {
+                    this.blinked[neIdx] = true;
+                    this.ripple(x+1, y-1, neIdx)
+                }
+            }
+            if (y < this.h-1) {
+                let seIdx = idx + this.w + 1;
+                let se = this.points[seIdx] + 1;
+                this.points[seIdx] = se
+                if (se > 9 && !this.blinked[seIdx]) {
+                    this.blinked[seIdx] = true;
+                    this.ripple(x+1, y+1, seIdx)
+                }
+            }
+        }
+        if (y > 0) {
+            let nIdx = idx - this.w;
+            let n = this.points[nIdx] + 1;
+            this.points[nIdx] = n
+            if (n > 9 && !this.blinked[nIdx]) {
+                this.blinked[nIdx] = true;
+                this.ripple(x, y-1, nIdx)
+            }
+        }
+        if (y < this.h-1) {
+            let sIdx = idx + this.w;
+            let s = this.points[sIdx] + 1;
+            this.points[sIdx] = s
+            if (s > 9 && !this.blinked[sIdx]) {
+                this.blinked[sIdx] = true;
+                this.ripple(x, y+1, sIdx)
+            }
+        }
+    }
+
+    step() {
+        for (let i = 0; i < this.w*this.h; i++) {
+            this.blinked[i] = false;
+        }
+
+        for (let y = 0; y < this.h; y++) {
+            let offset = y * this.w;
+            for (let x = 0; x < this.w; x++) {
+                let idx = offset + x;
+                let next = this.points[idx] + 1;
+                this.points[idx] = next;
+                if (next > 9 && !this.blinked[idx]) {
+                    this.blinked[idx] = true;
+                    this.ripple(x, y, idx);
+                }
+            }
+        }
+
+        this.blinked.forEach((blinked, idx) => {
+            if (blinked) this.points[idx] = 0;
+        });
+    }
+
+    draw() {
+        let c = document.createElement("canvas");
+        c.width = this.w;
+        c.height = this.h;
+        let ctx = c.getContext("2d");
+        let img = ctx.getImageData(0, 0, this.w, this.h);
+        for (let i = 0; i < this.w*this.h; i++) {
+            let idx = 4*i;
+            let v = Math.min(10, this.points[i]);
+            let [r, g, b] = colorMap[v];
+            img.data[idx]     = r;
+            img.data[idx + 1] = g;
+            img.data[idx + 2] = b;
+            img.data[idx + 3] = 0xff;
+        }
+        console.log(img.data);
+        ctx.putImageData(img, 0, 0);
+        return c;
+    }
+}
+
+let _canvas = document.getElementById("canvas");
+let g = new Grid(_canvas.clientWidth, _canvas.clientHeight);
+_canvas.width = g.w;
+_canvas.height = g.h;
+function drawGrid() {
+    let ctx = _canvas.getContext("2d");
+    let gCanvas = g.draw();
+    let gctx = gCanvas.getContext("2d");
+    let gimg = gctx.getImageData(0, 0, g.w, g.h);
+    ctx.putImageData(gimg, 0, 0);
+}
+drawGrid();
+
+function update() {
+    g.step();
+    drawGrid();
+    // requestAnimationFrame(update);
+}
+// requestAnimationFrame(update);
+
+setInterval(update, 166);
+
+    </script>
+</body>
+</html>
