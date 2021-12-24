@@ -41,4 +41,31 @@ func Test_safestRoute(t *testing.T) {
 		risk := safestRoute(c)
 		require.Equal(t, 609, risk)
 	})
+
+	t.Run("example scaled", func(t *testing.T) {
+		c := parse(exampleInput).scale(5)
+		risk := safestRoute(c)
+		require.Equal(t, 315, risk)
+	})
+
+	t.Run("puzzle B", func(t *testing.T) {
+		c := parse(puzzleInput).scale(5)
+		risk := safestRoute(c)
+		require.Equal(t, 2925, risk)
+	})
+}
+
+func TestCave_scale(t *testing.T) {
+	t.Run("single", func(t *testing.T) {
+		c := parse("8")
+		larger := c.scale(5)
+		want := []int{
+			8, 9, 1, 2, 3,
+			9, 1, 2, 3, 4,
+			1, 2, 3, 4, 5,
+			2, 3, 4, 5, 6,
+			3, 4, 5, 6, 7,
+		}
+		require.Equal(t, want, larger.risks)
+	})
 }

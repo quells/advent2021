@@ -12,6 +12,29 @@ type cave struct {
 	visited []bool
 }
 
+func (c cave) scale(n int) (larger cave) {
+	larger.w = c.w * 5
+	larger.h = c.h * 5
+	larger.risks = make([]int, larger.w*larger.h)
+	larger.visited = make([]bool, larger.w*larger.h)
+
+	for j := 0; j < n; j++ {
+		for i := 0; i < n; i++ {
+			offset := i + j - 1
+			for y := 0; y < c.h; y++ {
+				for x := 0; x < c.w; x++ {
+					oldIdx := c.idx(x, y)
+					newIdx := larger.idx(x+c.w*i, y+c.h*j)
+					newRisk := ((c.risks[oldIdx] + offset) % 9) + 1
+					larger.risks[newIdx] = newRisk
+				}
+			}
+		}
+	}
+
+	return
+}
+
 func (c cave) idx(x, y int) int {
 	return x + y*c.w
 }
@@ -180,7 +203,7 @@ func safestRoute(c cave) (risk int) {
 		depth = pos.depth
 		rounds++
 	}
-	log.Println(rounds)
+	log.Println(rounds, len(c.risks))
 
 	return
 }
