@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/hex"
 	"io"
+	"math"
 )
 
 func parse(input string) (bs bitstream) {
@@ -53,6 +54,74 @@ func versionSum(packets []packet) int {
 		sum += p.versionSum()
 	}
 	return sum
+}
+
+func (p packet) value() int {
+	switch p.id {
+	case 0:
+		sum := 0
+		for _, sp := range p.subpackets {
+			sum += sp.value()
+		}
+		return sum
+
+	case 1:
+		product := 1
+		for _, sp := range p.subpackets {
+			product *= sp.value()
+		}
+		return product
+
+	case 2:
+		min := math.MaxInt
+		for _, sp := range p.subpackets {
+			v := sp.value()
+			if v < min {
+				min = v
+			}
+		}
+		return min
+
+	case 3:
+		max := 0
+		for _, sp := range p.subpackets {
+			v := sp.value()
+			if v > max {
+				max = v
+			}
+		}
+		return max
+
+	case 4:
+		return p.literal
+
+	case 5:
+		a := p.subpackets[0].value()
+		b := p.subpackets[1].value()
+		if a > b {
+			return 1
+		}
+		return 0
+
+	case 6:
+		a := p.subpackets[0].value()
+		b := p.subpackets[1].value()
+		if a < b {
+			return 1
+		}
+		return 0
+
+	case 7:
+		a := p.subpackets[0].value()
+		b := p.subpackets[1].value()
+		if a == b {
+			return 1
+		}
+		return 0
+
+	default:
+		panic("unhandled packet id")
+	}
 }
 
 func (bs *bitstream) next() (p packet, err error) {

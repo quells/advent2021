@@ -81,3 +81,35 @@ func Test_versionSum(t *testing.T) {
 		})
 	}
 }
+
+func TestPacket_value(t *testing.T) {
+	tests := []struct {
+		name string
+		hex  string
+		want int
+	}{
+		{"sum", "C200B40A82", 3},          // 1 + 2 = 3
+		{"product", "04005AC33890", 54},   // 6 * 9 = 54
+		{"minimum", "880086C3E88112", 7},  // min(7, 8, 9)
+		{"maximum", "CE00C43D881120", 9},  // max(7, 8, 9)
+		{"less than", "D8005AC2A8F0", 1},  // 5 < 15
+		{"greater than", "F600BC2D8F", 0}, // !(5 > 15)
+		{"equal to", "9C005AC2F8F0", 0},   // !(5 == 15)
+
+		{"arithmetic comparison", "9C0141080250320F1802104A08", 1}, // 1 + 3 == 2 * 2
+
+		{"puzzle B", puzzleInput, 912901337844},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			bs := parse(tt.hex)
+			ps, err := bs.packets()
+
+			require.NoError(t, err)
+			require.Len(t, ps, 1)
+
+			got := ps[0].value()
+			require.Equal(t, tt.want, got)
+		})
+	}
+}
